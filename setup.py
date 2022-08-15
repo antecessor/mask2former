@@ -15,15 +15,13 @@ runcmd(command)
 
 setuptools.setup(
     name='mask2former',
-    version='0.0.1',
+    version='0.0.2',
     author='Reza Mohebbian',
     author_email='',
     description='Mask2Former',
     long_description_content_type='text/markdown',
 
     packages=setuptools.find_packages(),
-    package_dir={
-        'mask2former': 'Mask2Former'},
     license='Apache License 2.0',
     install_requires=["torch==1.9.1+cu111",
                       "detectron2"],
