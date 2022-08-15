@@ -15,7 +15,7 @@ runcmd(command)
 
 setuptools.setup(
     name='mask2former',
-    version='0.0.2',
+    version='0.0.3',
     author='Reza Mohebbian',
     author_email='',
     description='Mask2Former',
