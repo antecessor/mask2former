@@ -28,7 +28,7 @@ setuptools.setup(
     install_requires=["torch==1.9.1+cu111",
                       "detectron2"],
     url="https://github.com/antecessor/mask2former",
-    python_requires='3.7',  # matplotlib >3.1 requires python >=3.6
+    python_requires='>=3.7, <3.8',  # matplotlib >3.1 requires python >=3.6
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
