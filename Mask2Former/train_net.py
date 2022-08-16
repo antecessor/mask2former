@@ -4,10 +4,13 @@ MaskFormer Training Script.
 
 This script is a simplified version of the training script in detectron2/tools.
 """
+from detectron2.data.datasets import register_coco_instances
+
 try:
     # ignore ShapelyDeprecationWarning from fvcore
     from shapely.errors import ShapelyDeprecationWarning
     import warnings
+
     warnings.filterwarnings('ignore', category=ShapelyDeprecationWarning)
 except:
     pass
@@ -97,42 +100,47 @@ class Trainer(DefaultTrainer):
             "mapillary_vistas_panoptic_seg",
         ]:
             if cfg.MODEL.MASK_FORMER.TEST.PANOPTIC_ON:
-                evaluator_list.append(COCOPanopticEvaluator(dataset_name, output_folder))
+                evaluator_list.append(
+                    COCOPanopticEvaluator(dataset_name, output_folder))
         # COCO
         if evaluator_type == "coco_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
             evaluator_list.append(COCOEvaluator(dataset_name, output_dir=output_folder))
         if evaluator_type == "coco_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
-            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True, output_dir=output_folder))
+            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True,
+                                                  output_dir=output_folder))
         # Mapillary Vistas
         if evaluator_type == "mapillary_vistas_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
-            evaluator_list.append(InstanceSegEvaluator(dataset_name, output_dir=output_folder))
+            evaluator_list.append(
+                InstanceSegEvaluator(dataset_name, output_dir=output_folder))
         if evaluator_type == "mapillary_vistas_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
-            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True, output_dir=output_folder))
+            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True,
+                                                  output_dir=output_folder))
         # Cityscapes
         if evaluator_type == "cityscapes_instance":
             assert (
-                torch.cuda.device_count() > comm.get_rank()
+                    torch.cuda.device_count() > comm.get_rank()
             ), "CityscapesEvaluator currently do not work with multiple machines."
             return CityscapesInstanceEvaluator(dataset_name)
         if evaluator_type == "cityscapes_sem_seg":
             assert (
-                torch.cuda.device_count() > comm.get_rank()
+                    torch.cuda.device_count() > comm.get_rank()
             ), "CityscapesEvaluator currently do not work with multiple machines."
             return CityscapesSemSegEvaluator(dataset_name)
         if evaluator_type == "cityscapes_panoptic_seg":
             if cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
                 assert (
-                    torch.cuda.device_count() > comm.get_rank()
+                        torch.cuda.device_count() > comm.get_rank()
                 ), "CityscapesEvaluator currently do not work with multiple machines."
                 evaluator_list.append(CityscapesSemSegEvaluator(dataset_name))
             if cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
                 assert (
-                    torch.cuda.device_count() > comm.get_rank()
+                        torch.cuda.device_count() > comm.get_rank()
                 ), "CityscapesEvaluator currently do not work with multiple machines."
                 evaluator_list.append(CityscapesInstanceEvaluator(dataset_name))
         # ADE20K
         if evaluator_type == "ade20k_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
-            evaluator_list.append(InstanceSegEvaluator(dataset_name, output_dir=output_folder))
+            evaluator_list.append(
+                InstanceSegEvaluator(dataset_name, output_dir=output_folder))
         # LVIS
         if evaluator_type == "lvis":
             return LVISEvaluator(dataset_name, output_dir=output_folder)
@@ -216,10 +224,11 @@ class Trainer(DefaultTrainer):
 
                 hyperparams = copy.copy(defaults)
                 if "backbone" in module_name:
-                    hyperparams["lr"] = hyperparams["lr"] * cfg.SOLVER.BACKBONE_MULTIPLIER
+                    hyperparams["lr"] = hyperparams[
+                                            "lr"] * cfg.SOLVER.BACKBONE_MULTIPLIER
                 if (
-                    "relative_position_bias_table" in module_param_name
-                    or "absolute_pos_embed" in module_param_name
+                        "relative_position_bias_table" in module_param_name
+                        or "absolute_pos_embed" in module_param_name
                 ):
                     print(module_param_name)
                     hyperparams["weight_decay"] = 0.0
@@ -233,14 +242,15 @@ class Trainer(DefaultTrainer):
             # detectron2 doesn't have full model gradient clipping now
             clip_norm_val = cfg.SOLVER.CLIP_GRADIENTS.CLIP_VALUE
             enable = (
-                cfg.SOLVER.CLIP_GRADIENTS.ENABLED
-                and cfg.SOLVER.CLIP_GRADIENTS.CLIP_TYPE == "full_model"
-                and clip_norm_val > 0.0
+                    cfg.SOLVER.CLIP_GRADIENTS.ENABLED
+                    and cfg.SOLVER.CLIP_GRADIENTS.CLIP_TYPE == "full_model"
+                    and clip_norm_val > 0.0
             )
 
             class FullModelGradientClippingOptimizer(optim):
                 def step(self, closure=None):
-                    all_params = itertools.chain(*[x["params"] for x in self.param_groups])
+                    all_params = itertools.chain(
+                        *[x["params"] for x in self.param_groups])
                     torch.nn.utils.clip_grad_norm_(all_params, clip_norm_val)
                     super().step(closure=closure)
 
@@ -291,13 +301,24 @@ def setup(args):
     cfg.freeze()
     default_setup(cfg, args)
     # Setup logger for "mask_former" module
-    setup_logger(output=cfg.OUTPUT_DIR, distributed_rank=comm.get_rank(), name="mask2former")
+    setup_logger(output=cfg.OUTPUT_DIR, distributed_rank=comm.get_rank(),
+                 name="mask2former")
     return cfg
 
 
 def main(args):
     cfg = setup(args)
-
+    print(cfg.DATASETS)
+    register_coco_instances(cfg.DATASETS.TRAIN[0], {},
+                            cfg.DATASETS.TRAIN[1],
+                            cfg.DATASETS.TRAIN[2])
+    register_coco_instances(cfg.DATASETS.TEST[0], {},
+                            cfg.DATASETS.TEST[1],
+                            cfg.DATASETS.TEST[2])
+    cfg.defrost()
+    cfg.DATASETS.TRAIN = ('train_dataset',)
+    cfg.DATASETS.TEST = ('test_dataset',)
+    cfg.freeze()
     if args.eval_only:
         model = Trainer.build_model(cfg)
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(

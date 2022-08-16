@@ -4,6 +4,7 @@ install:
 	python -m pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.9/index.html;
 	pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html;
 	pip install -r ./Mask2Former/requirements.txt;
+	pip install tensorboard
 
 build:
 	export FORCE_CUDA=1

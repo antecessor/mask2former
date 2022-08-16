@@ -15,7 +15,7 @@ runcmd(command)
 
 setuptools.setup(
     name='mask2former',
-    version='0.0.3',
+    version='0.1.3',
     author='Reza Mohebbian',
     author_email='',
     description='Mask2Former',
@@ -23,7 +23,7 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
     license='Apache License 2.0',
-    install_requires=["torch==1.9.1+cu111",
+    install_requires=["setuptools==59.5.0","tensorboard", "tensorboard-pytorch", "torch==1.9.1+cu111",
                       "detectron2"],
     url="https://github.com/antecessor/mask2former",
     python_requires='>=3.7, <3.8',  # matplotlib >3.1 requires python >=3.6
